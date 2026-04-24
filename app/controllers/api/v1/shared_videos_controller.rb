@@ -2,11 +2,12 @@
 
 module Api
   module V1
-    class SharedVideosController < BaseController
-      skip_before_action :authenticate_request!, only: [ :index ]
+    class SharedVideosController < ApplicationController
+      include Authenticatable
+      before_action :authenticate_request!, only: [ :index, :create ]
 
       def index
-        videos = SharedVideo.includes(:user).order(created_at: :desc)
+        videos = SharedVideo.includes(:user).order(created_at: :desc).limit(index_limit)
         render json: videos.map { |v| serialize(v) }
       end
 
@@ -21,6 +22,12 @@ module Api
       end
 
       private
+
+      def index_limit
+        n = params[:limit].to_i
+        n = 50 if n <= 0
+        [ n, 100 ].min
+      end
 
       def shared_video_params
         params.permit(:youtube_url, :title)

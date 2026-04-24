@@ -15,6 +15,15 @@ class SharedVideoTest < ActiveSupport::TestCase
     end
   end
 
+  test "rejects overly long youtube_url" do
+    long = "https://www.youtube.com/watch?v=#{'a' * 11}&pad=#{'b' * 2100}"
+    YoutubeMetadata.stub(:fetch_title, "T") do
+      video = SharedVideo.new(user: @user, youtube_url: long)
+      assert_not video.valid?
+      assert_includes video.errors[:youtube_url], "is too long (maximum is 2048 characters)"
+    end
+  end
+
   test "accepts valid youtube watch url with stubbed title" do
     YoutubeMetadata.stub(:fetch_title, "Nice clip") do
       video = SharedVideo.create!(

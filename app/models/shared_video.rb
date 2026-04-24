@@ -3,7 +3,7 @@
 class SharedVideo < ApplicationRecord
   belongs_to :user
 
-  validates :youtube_url, presence: true
+  validates :youtube_url, presence: true, length: { maximum: 2048 }
 
   before_validation :assign_metadata
   validate :youtube_url_format

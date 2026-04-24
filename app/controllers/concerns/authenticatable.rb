@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
+# Include this concern and add in the controller:
+#   before_action :authenticate_request!, only: [ :create, ... ]
 module Authenticatable
   extend ActiveSupport::Concern
-
-  included do
-    before_action :authenticate_request!
-  end
 
   private
 
