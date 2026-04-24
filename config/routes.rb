@@ -1,0 +1,13 @@
+Rails.application.routes.draw do
+  get "up" => "rails/health#show", as: :rails_health_check
+
+  mount ActionCable.server => "/cable"
+
+  namespace :api do
+    namespace :v1 do
+      post "auth/register", to: "auth#register"
+      post "auth/login", to: "auth#login"
+      resources :shared_videos, only: %i[ index create ]
+    end
+  end
+end
