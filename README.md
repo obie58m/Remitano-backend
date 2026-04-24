@@ -31,7 +31,6 @@ Backend for the Remitano-style exercise: **JWT auth**, **shared YouTube links** 
 ## Installation & configuration
 
 ```bash
-git clone <your-backend-repo-url>
 cd backend
 bundle install
 cp .env.example .env
