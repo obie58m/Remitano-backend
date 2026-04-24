@@ -2,7 +2,6 @@
 
 Backend for the Remitano-style exercise: **JWT auth**, **shared YouTube links** (oEmbed titles), **authenticated feed**, **Action Cable** real-time notifications, **Sidekiq** background broadcasts.
 
-Submission reference: [Remitano developer project submission](https://remi.group/project-for-remitano-developer-submission).
 
 ---
 
@@ -144,7 +143,3 @@ Includes unit tests (models, services), controller tests, integration flow, job,
 | No live notifications | Ensure Sidekiq is running so `BroadcastNewVideoJob` executes. |
 
 ---
-
-## Split frontend / backend repos
-
-This directory is the **entire** backend. Point your SPA at this host and set `FRONTEND_ORIGIN` to the SPA’s production URL(s).
