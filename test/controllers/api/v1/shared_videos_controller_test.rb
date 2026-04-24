@@ -59,5 +59,52 @@ class Api::V1::SharedVideosControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
     body = JSON.parse(response.body)
     assert_equal "T", body["title"]
+    assert_equal true, body["removable"]
+  end
+
+  test "destroy requires auth" do
+    delete api_v1_shared_video_url(shared_videos(:one)), as: :json
+    assert_response :unauthorized
+  end
+
+  test "destroy removes own share and returns no content" do
+    token = JsonWebToken.encode(users(:alice).id)
+    assert_difference("SharedVideo.count", -1) do
+      delete api_v1_shared_video_url(shared_videos(:one)),
+             headers: { Authorization: "Bearer #{token}" },
+             as: :json
+    end
+    assert_response :no_content
+  end
+
+  test "destroy returns not found for another users share" do
+    token = JsonWebToken.encode(users(:bob).id)
+    assert_no_difference("SharedVideo.count") do
+      delete api_v1_shared_video_url(shared_videos(:one)),
+             headers: { Authorization: "Bearer #{token}" },
+             as: :json
+    end
+    assert_response :not_found
+  end
+
+  test "index entries mark removable for current user shares only" do
+    token_alice = JsonWebToken.encode(users(:alice).id)
+    get api_v1_shared_videos_url,
+        headers: { Authorization: "Bearer #{token_alice}" },
+        as: :json
+    assert_response :ok
+    list = JSON.parse(response.body)
+    mine = list.find { |v| v["id"] == shared_videos(:one).id }
+    assert mine
+    assert_equal true, mine["removable"]
+
+    token_bob = JsonWebToken.encode(users(:bob).id)
+    get api_v1_shared_videos_url,
+        headers: { Authorization: "Bearer #{token_bob}" },
+        as: :json
+    assert_response :ok
+    other = JSON.parse(response.body).find { |v| v["id"] == shared_videos(:one).id }
+    assert other
+    assert_equal false, other["removable"]
   end
 end

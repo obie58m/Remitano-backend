@@ -8,9 +8,11 @@ Submission reference: [Remitano developer project submission](https://remi.group
 
 ## Introduction
 
-- `POST /api/v1/auth/register` · `POST /api/v1/auth/login` — returns a JWT.
+- `POST /api/v1/auth/register` · `POST /api/v1/auth/login` — returns a JWT and user.
+- `GET /api/v1/auth/me` — current user from Bearer JWT (for SPA session restore).
 - `GET /api/v1/shared_videos` — list newest shares when logged in (optional `?limit=`; default 50, max 100).
 - `POST /api/v1/shared_videos` — share a URL (Bearer JWT).
+- `DELETE /api/v1/shared_videos/:id` — remove your own share (Bearer JWT).
 - `GET /cable?token=<jwt>` — WebSocket; subscribe to `VideoNotificationsChannel` for `{ type, title, sharer_name, youtube_video_id }` when others share.
 
 ---
@@ -114,8 +116,10 @@ docker build -t yt-share-api .
 | GET | `/up` | No — load balancer health |
 | POST | `/api/v1/auth/register` | No — JSON body: `email`, `password`, `password_confirmation`, `name` |
 | POST | `/api/v1/auth/login` | No — `email`, `password` |
+| GET | `/api/v1/auth/me` | Yes — Bearer JWT; returns `{ user: { id, email, name } }` |
 | GET | `/api/v1/shared_videos?limit=20` | Yes — Bearer JWT |
 | POST | `/api/v1/shared_videos` | Yes — `Authorization: Bearer <jwt>`, body: `youtube_url` |
+| DELETE | `/api/v1/shared_videos/:id` | Yes — removes the row only if it belongs to the JWT user |
 | WS | `/cable?token=<jwt>` | JWT — subscribe to `VideoNotificationsChannel` |
 
 ---

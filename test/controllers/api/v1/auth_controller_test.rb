@@ -39,4 +39,20 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unauthorized
   end
+
+  test "me requires auth" do
+    get api_v1_auth_me_url, as: :json
+    assert_response :unauthorized
+  end
+
+  test "me returns current user with valid token" do
+    token = JsonWebToken.encode(users(:alice).id)
+    get api_v1_auth_me_url,
+        headers: { Authorization: "Bearer #{token}" },
+        as: :json
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_equal "Alice", body.dig("user", "name")
+    assert_equal users(:alice).email, body.dig("user", "email")
+  end
 end

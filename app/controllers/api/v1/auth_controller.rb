@@ -3,6 +3,9 @@
 module Api
   module V1
     class AuthController < ApplicationController
+      include Authenticatable
+      before_action :authenticate_request!, only: [ :me ]
+
       def register
         user = User.new(user_params)
         if user.save
@@ -21,6 +24,10 @@ module Api
         end
       end
 
+      def me
+        render json: { user: serialize_user(current_user) }
+      end
+
       private
 
       def user_params
@@ -34,11 +41,15 @@ module Api
       def auth_payload(user)
         {
           token: JsonWebToken.encode(user.id),
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name
-          }
+          user: serialize_user(user)
+        }
+      end
+
+      def serialize_user(user)
+        {
+          id: user.id,
+          email: user.email,
+          name: user.name
         }
       end
     end

@@ -11,13 +11,4 @@ if alice.new_record?
   alice.save!
 end
 
-demo_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-unless SharedVideo.exists?(user: alice, youtube_url: demo_url)
-  SharedVideo.create!(
-    user: alice,
-    youtube_url: demo_url,
-    title: "Demo shared video"
-  )
-end
-
 Rails.logger.info { "Seeds done. Demo login: demo@example.com / password1234" }
