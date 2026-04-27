@@ -2,3 +2,6 @@ one:
   user: alice
   youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
   title: Fixture video
+  description: "Fixture description"
+  upvotes_count: 1
+  downvotes_count: 0

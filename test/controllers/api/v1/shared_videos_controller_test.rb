@@ -5,7 +5,7 @@ require "test_helper"
 class Api::V1::SharedVideosControllerTest < ActionDispatch::IntegrationTest
   test "index requires auth" do
     get api_v1_shared_videos_url, as: :json
-    assert_response :unauthorized
+    assert_response :ok
   end
 
   test "index returns list with token" do
@@ -16,6 +16,19 @@ class Api::V1::SharedVideosControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     list = JSON.parse(response.body)
     assert list.is_a?(Array)
+  end
+
+  test "index includes vote counts and my_vote when authed" do
+    token = JsonWebToken.encode(users(:alice).id)
+    get api_v1_shared_videos_url,
+        headers: { Authorization: "Bearer #{token}" },
+        as: :json
+    assert_response :ok
+    item = JSON.parse(response.body).find { |v| v["id"] == shared_videos(:one).id }
+    assert item
+    assert_equal 0, item["downvotes_count"]
+    assert_equal 1, item["upvotes_count"]
+    assert_equal 1, item["my_vote"]
   end
 
   test "index respects limit cap" do
@@ -52,7 +65,7 @@ class Api::V1::SharedVideosControllerTest < ActionDispatch::IntegrationTest
       assert_enqueued_jobs 1, only: BroadcastNewVideoJob do
         post api_v1_shared_videos_url,
              headers: { Authorization: "Bearer #{token}" },
-             params: { youtube_url: "https://www.youtube.com/watch?v=jNQXAC9IVRw" },
+             params: { youtube_url: "https://www.youtube.com/watch?v=jNQXAC9IVRw", description: "Desc" },
              as: :json
       end
     end
@@ -60,6 +73,7 @@ class Api::V1::SharedVideosControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_equal "T", body["title"]
     assert_equal true, body["removable"]
+    assert_equal "Desc", body["description"]
   end
 
   test "destroy requires auth" do
@@ -106,5 +120,52 @@ class Api::V1::SharedVideosControllerTest < ActionDispatch::IntegrationTest
     other = JSON.parse(response.body).find { |v| v["id"] == shared_videos(:one).id }
     assert other
     assert_equal false, other["removable"]
+  end
+
+  test "vote requires auth" do
+    post vote_api_v1_shared_video_url(shared_videos(:one)), params: { value: 1 }, as: :json
+    assert_response :unauthorized
+  end
+
+  test "vote up then clear" do
+    token = JsonWebToken.encode(users(:bob).id)
+    post vote_api_v1_shared_video_url(shared_videos(:one)),
+         headers: { Authorization: "Bearer #{token}" },
+         params: { value: 1 },
+         as: :json
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_equal 2, body["upvotes_count"]
+    assert_equal 0, body["downvotes_count"]
+    assert_equal 1, body["my_vote"]
+
+    post vote_api_v1_shared_video_url(shared_videos(:one)),
+         headers: { Authorization: "Bearer #{token}" },
+         params: { value: 0 },
+         as: :json
+    assert_response :ok
+    body2 = JSON.parse(response.body)
+    assert_equal 1, body2["upvotes_count"]
+    assert_equal 0, body2["downvotes_count"]
+    assert_equal 0, body2["my_vote"]
+  end
+
+  test "vote switches from up to down" do
+    token = JsonWebToken.encode(users(:bob).id)
+    post vote_api_v1_shared_video_url(shared_videos(:one)),
+         headers: { Authorization: "Bearer #{token}" },
+         params: { value: 1 },
+         as: :json
+    assert_response :ok
+
+    post vote_api_v1_shared_video_url(shared_videos(:one)),
+         headers: { Authorization: "Bearer #{token}" },
+         params: { value: -1 },
+         as: :json
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_equal 1, body["upvotes_count"]
+    assert_equal 1, body["downvotes_count"]
+    assert_equal(-1, body["my_vote"])
   end
 end

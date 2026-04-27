@@ -8,10 +8,12 @@ module Authenticatable
   private
 
   def authenticate_request!
-    token = bearer_token
-    payload = JsonWebToken.decode(token)
-    @current_user = User.find_by(id: payload&.dig("sub")) if payload
+    set_current_user_from_bearer_token
     render json: { error: "Unauthorized" }, status: :unauthorized unless @current_user
+  end
+
+  def try_authenticate_request!
+    set_current_user_from_bearer_token
   end
 
   def bearer_token
@@ -23,5 +25,11 @@ module Authenticatable
 
   def current_user
     @current_user
+  end
+
+  def set_current_user_from_bearer_token
+    token = bearer_token
+    payload = JsonWebToken.decode(token)
+    @current_user = User.find_by(id: payload&.dig("sub")) if payload
   end
 end

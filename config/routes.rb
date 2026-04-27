@@ -10,7 +10,9 @@ Rails.application.routes.draw do
       post "auth/register", to: "auth#register"
       post "auth/login", to: "auth#login"
       get "auth/me", to: "auth#me"
-      resources :shared_videos, only: %i[ index create destroy ]
+      resources :shared_videos, only: %i[ index create destroy ] do
+        post :vote, on: :member
+      end
     end
   end
 end

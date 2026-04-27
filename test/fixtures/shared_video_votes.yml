@@ -1,0 +1,6 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+alice_upvotes_one:
+  user: alice
+  shared_video: one
+  value: 1

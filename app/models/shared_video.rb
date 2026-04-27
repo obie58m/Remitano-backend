@@ -2,8 +2,10 @@
 
 class SharedVideo < ApplicationRecord
   belongs_to :user
+  has_many :shared_video_votes, dependent: :destroy
 
   validates :youtube_url, presence: true, length: { maximum: 2048 }
+  validates :description, length: { maximum: 5000 }, allow_nil: true
 
   before_validation :assign_metadata
   validate :youtube_url_format
