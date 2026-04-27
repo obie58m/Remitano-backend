@@ -57,14 +57,9 @@ RAILS_ENV=test bin/rails db:create db:migrate   # optional, for tests
 
 Unset `DATABASE_HOST` if you use peer/socket auth, or set `DATABASE_URL` to your instance.
 
-Load demo data (optional):
-
 ```bash
 bin/rails db:seed
 ```
-
-Demo account (created if missing): `demo@example.com` / `password1234`.
-
 ---
 
 ## Running the application
